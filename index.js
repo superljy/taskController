@@ -1,14 +1,16 @@
 /**
  * NSB蓝任务触发任务运行简陋监控
- * 
  * Created by August
  */
 
 const express = require('express');
 const fs = require('fs');
 const watch = require('node-watch');
-const { exec } = require('child_process');
+const {
+    exec
+} = require('child_process');
 const app = express();
+const timeFormat = require('./utils/utils');
 
 app.listen('3456', () => {
     console.log('Monitoring...');
@@ -23,7 +25,7 @@ app.listen('3456', () => {
 let timeout;
 watch('C:/Users/Administrator/AppData/Roaming/NSB/storage/tasks.json', (event, filename) => {
     if (filename && event === 'update') {
-        console.log(`Tasks have been changed, wait for 5 minutes..`);
+        console.log(`[${timeFormat('MM-DD hh:mm:ss')}] `, `Tasks have been changed, wait for 5 minutes..`);
         clearTimeout(timeout);
         timeout = setTimeout(() => {
             fs.readFile(filename, (err, data) => {
@@ -42,38 +44,37 @@ watch('C:/Users/Administrator/AppData/Roaming/NSB/storage/tasks.json', (event, f
                     let taskCreatedTime = Date.parse(new Date(_data[i].date));
                     let now = Date.parse(new Date());
                     let usedMinutes = (now - taskCreatedTime) / (60 * 1000);
-                    console.log(_data[i].site, _data[i].method, `Task has been running for ${Math.round(usedMinutes)} minutes...`);
+                    console.log(`[${timeFormat('MM-DD hh:mm:ss')}] `, _data[i].site, _data[i].method, `Task has been running for ${Math.round(usedMinutes)} minutes...`);
                     if (usedMinutes >= 5) {
                         _data.splice(i, 1);
                     }
                 }
-                console.log(`You're now have tasks:${_data.length} `, `Old tasks:${JSON.parse(data).length}`);
+                console.log(`[${timeFormat('MM-DD hh:mm:ss')}] `, `You're now have tasks:${_data.length} `, `Old tasks:${JSON.parse(data).length}`);
 
                 if (_data.length !== JSON.parse(data).length) {
                     fs.writeFile('C:/Users/Administrator/AppData/Roaming/NSB/storage/tasks.json', JSON.stringify(_data), 'utf-8', (err) => {
                         if (err) throw err.message;
-                        console.log('done')
+                        console.log(`[${timeFormat('MM-DD hh:mm:ss')}] `, 'Deleted tasks running over 5 minutes...')
                     });
                     /**
                      * 因调用bat文件执行shell命令会返回不安全警告,故直接将shell命令在exec中传入执行
-                     * TASKKILL /F /IM nsb.exe /T
-                     * ping 127.0.0.1 -w 1000 -n 5 >nul
-                     * start C:\Users\Administrator\AppData\Local\Programs\NSB\NSB.exe
+                     * TASKKILL /F /IM nsb.exe /T  关闭NSB
+                     * ping 127.0.0.1 -w 1000 -n 5 >nul  延迟5秒
+                     * start C:\Users\Administrator\AppData\Local\Programs\NSB\NSB.exe  重新启动NSB
                      * 
                      */
+                    exec('TASKKILL /F /IM nsb.exe /T', (err, stdout, stderr) => {
+                        if (err) throw err.message;
+                        console.log(`[${timeFormat('MM-DD hh:mm:ss')}] `, 'Close NSB success...');
+                    })
                     setTimeout(() => {
                         exec('start C:/Users/Administrator/AppData/Local/Programs/NSB/NSB.exe', (err, stdout, stderr) => {
                             if (err) throw err.message;
-                            console.log('Restarted NSB success...');
+                            console.log(`[${timeFormat('MM-DD hh:mm:ss')}] `, 'Restarted NSB success...');
                         })
-                    }, 500);
-                    exec('TASKKILL /F /IM nsb.exe /T', (err, stdout, stderr) => {
-                        if (err) throw err.message;
-                        console.log('Close NSB success...');
-                    })
+                    }, 1000);
                 }
             })
         }, 300000);
     }
 })
-
