@@ -49,7 +49,7 @@ watch('C:/Users/Administrator/AppData/Roaming/NSB/storage/tasks.json', (event, f
                         _data.splice(i, 1);
                     }
                 }
-                console.log(`[${timeFormat('MM-DD hh:mm:ss')}] `, `You're now have tasks:${_data.length} `, `Deleted tasks:${JSON.parse(data).length}-${_data.length}`);
+                console.log(`[${timeFormat('MM-DD hh:mm:ss')}] `, `You're now have tasks:${_data.length} `, `Deleted tasks:${JSON.parse(data).length-_data.length}`);
 
                 if (_data.length !== JSON.parse(data).length) {
                     fs.writeFile('C:/Users/Administrator/AppData/Roaming/NSB/storage/tasks.json', JSON.stringify(_data), 'utf-8', (err) => {
