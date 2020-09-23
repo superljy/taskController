@@ -8,4 +8,4 @@
 - This program was setted 5 minutes and you can't edit it for now.
 
 ## issues
-- When the tasks deleted,the NSB will shutdown one tiem to reload the task list,so maybe it will cause some tasks not running for 5 minutes,I will try to handle it but I'm not sure I can.
+- When the tasks deleted,the NSB will close to reload the tasks list,so maybe it will cause some tasks not running for 5 minutes,I will try to handle it but I'm not sure I can.
