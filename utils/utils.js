@@ -1,6 +1,6 @@
 /**
  * 时间格式化 
- * 例如 : 'YYYY-MM-DD hh:mm:ss 年-月-日 时:分:秒'
+ * 例如 : 'YYYY-MM-DD hh:mm:ss' 表示 年-月-日 时:分:秒 注意大小写
  * @param {String (想要格式化的格式)} format 
  */
 const timeFormat = (format) => {

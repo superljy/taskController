@@ -22,6 +22,7 @@ app.listen('3456', () => {
  * event不同于fs.watch 这里是update和remove 其实差不多对应fs.watch的change和rename
  * filename同样是触发更改的文件
  */
+<<<<<<< HEAD
 (function () {
     let timeout, flag = true;
     watch('C:/Users/Administrator/AppData/Roaming/NSB/storage/tasks.json', (event, filename) => {
@@ -32,6 +33,50 @@ app.listen('3456', () => {
                 clearTimeout(timeout);
                 timeout = setTimeout(() => {
                     fs.readFile(filename, (err, data) => {
+=======
+let timeout;
+watch('C:/Users/Administrator/AppData/Roaming/NSB/storage/tasks.json', (event, filename) => {
+    if (filename && event === 'update') {
+        console.log(`[${timeFormat('MM-DD hh:mm:ss')}] `, `Tasks have been changed, wait for 5 minutes..`);
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            fs.readFile(filename, (err, data) => {
+                if (err) throw err.message;
+                let _data = JSON.parse(data);
+                for (let i = 0; i < _data.length; i++) {
+                    if (_data[i].site === 'all' || _data[i].method === 'generator') {
+                        continue;
+                    }
+                    /**
+                     * Date.parse 将日期时间转换成时间戳格式,parse会忽略毫秒 直接返回000
+                     * 把任务创建时间和当前时间都变成时间戳 然后相减作对比 得出的差值除以60*1000 表示换算成分钟数
+                     * 当分钟数大于或等于5的时候 表示这个任务最少已经运行了5分钟 可以把它删掉
+                     * 把修改过的_data重新写入tasks.json
+                     */
+                    let taskCreatedTime = Date.parse(new Date(_data[i].date));
+                    let now = Date.parse(new Date());
+                    let usedMinutes = (now - taskCreatedTime) / (60 * 1000);
+                    console.log(`[${timeFormat('MM-DD hh:mm:ss')}] `, _data[i].site, _data[i].method, `Task has been running for ${Math.round(usedMinutes)} minutes...`);
+                    if (usedMinutes >= 5) {
+                        _data.splice(i, 1);
+                    }
+                }
+                console.log(`[${timeFormat('MM-DD hh:mm:ss')}] `, `You're now have tasks:${_data.length} `, `Deleted tasks:${JSON.parse(data).length-_data.length}`);
+
+                if (_data.length !== JSON.parse(data).length) {
+                    fs.writeFile('C:/Users/Administrator/AppData/Roaming/NSB/storage/tasks.json', JSON.stringify(_data), 'utf-8', (err) => {
+                        if (err) throw err.message;
+                        console.log(`[${timeFormat('MM-DD hh:mm:ss')}] `, 'Deleted tasks running over 5 minutes...')
+                    });
+                    /**
+                     * 因调用bat文件执行shell命令会返回不安全警告,故直接将shell命令在exec中传入执行
+                     * TASKKILL /F /IM nsb.exe /T  关闭NSB
+                     * ping 127.0.0.1 -w 1000 -n 5 >nul  延迟5秒
+                     * start C:\Users\Administrator\AppData\Local\Programs\NSB\NSB.exe  重新启动NSB
+                     * 
+                     */
+                    exec('TASKKILL /F /IM nsb.exe /T', (err, stdout, stderr) => {
+>>>>>>> 12cb5a8579efec8bf2fb00e87e54cee15a0e02db
                         if (err) throw err.message;
                         let _data = JSON.parse(data);
                         for (let i = 0; i < _data.length; i++) {
